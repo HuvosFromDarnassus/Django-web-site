@@ -5,7 +5,7 @@
       <meta charset="UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=edge" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <!-- Bootstrap -->
+      <!-- Bootstrap styles -->
       <link
          rel="stylesheet"
          href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
@@ -16,19 +16,26 @@
       <link rel="stylesheet" href="{% static 'css/main.css' %}" />
       <title>TechShop</title>
 
+      <!-- Cookie scripts -->
       <script>
          "use strict";
 
-         let user = "{{ request.user }}";
+         let user = "{{ request.user }}"; // Getting user: Logged in or guest.
 
+         // Generates CSRF Token cookie. Returns Token cookie.
          function getToken(name) {
-            let cookieValue = null;
+            let cookieValue = null; // Declare a cookie variable.
+            // If cookie exists and not empty.
             if (document.cookie && document.cookie !== "") {
+               // Getting cookies array and splitting by - ;.
                const cookies = document.cookie.split(";");
+               // Loop through cookies array.
                for (let i = 0; i < cookies.length; i++) {
+                  // For every cookie item - remove whitespace at the begiging and end.
                   const cookie = cookies[i].trim();
                   // Does this cookie string begin with the name we want?
                   if (cookie.substring(0, name.length + 1) === name + "=") {
+                     // Creating cookie and breaking loop.
                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                      break;
                   }
@@ -36,26 +43,28 @@
             }
             return cookieValue;
          }
-         let csrftoken = getToken("csrftoken");
+         let csrftoken = getToken("csrftoken"); // Generate new CSRF Token.
 
+         // Generate product cart cookie. Returns cookie.
          function getCookie(name) {
-            // Get all name=vlue pairs
+            // Get all name=vlue pairs.
             let cookieArr = document.cookie.split(";");
-
+            // Loop through cookies array.
             for (let i = 0; i < cookieArr.length; i++) {
                let cookiePair = cookieArr[i].split("=");
 
-               // Removing whitespaces at the beginning and compare it with the given string
+               // Removing whitespaces at the beginning and compare it with the given string.
                if (name == cookiePair[0].trim()) {
-                  // decode result
+                  // decode result.
                   return decodeURIComponent(cookiePair[1]);
                }
             }
-            // return null if not found
+            // return null if not found.
             return null;
          }
 
-         let cart = JSON.parse(getCookie("cart"));
+         let cart = JSON.parse(getCookie("cart")); // Creatin cart json based on cookie.
+         // If cart doesn't exists creating new empty.
          if (cart == undefined) {
             cart = {};
             document.cookie = "cart=" + JSON.stringify(cart) + ";domain=;path=/";
@@ -64,7 +73,7 @@
    </head>
 
    <body>
-      <!-- Navbar -->
+      <!-- Bootstrap navbar -->
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
          <a class="navbar-brand" href="{% url 'store' %}">TechShop</a>
          <button
@@ -102,7 +111,7 @@
          {% block content %} {% endblock content %}
       </div>
 
-      <!-- JavaScript-->
+      <!-- Bootstrap scripts -->
       <script
          src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
          integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"

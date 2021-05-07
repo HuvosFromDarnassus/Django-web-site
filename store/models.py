@@ -1,7 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
+"""
+Database Models.
+
+Converts code to SQL and creates table in database.
+"""
+
+"""Customer model"""
 class Customer(models.Model):
    user  = models.OneToOneField(User, null=True, blank=True, on_delete=models.CASCADE)
    name  = models.CharField(max_length=200, null=True)
@@ -10,9 +16,10 @@ class Customer(models.Model):
    def __str__(self):
       return self.name
 
+"""Product model"""
 class Product(models.Model):
    name     = models.CharField(max_length=200)
-   price    = models.DecimalField(max_digits=7, decimal_places=2)
+   price    = models.FloatField()
    digital  = models.BooleanField(default=False, null=True, blank=True)
    image    = models.ImageField(null=True, blank=True)
 
@@ -21,12 +28,14 @@ class Product(models.Model):
 
    @property
    def imageURL(self):
+      """Returns image url on server."""
       try:
          url = self.image.url
       except:
          url = ''
       return url
 
+"""Order model"""
 class Order(models.Model):
    customer       = models.ForeignKey(Customer, null=True, blank=True, on_delete=models.SET_NULL)
    date_ordered   = models.DateTimeField(auto_now_add=True)
@@ -38,6 +47,7 @@ class Order(models.Model):
 
    @property
    def shipping(self):
+      """Returns False if there is at least one digital product."""
       shipping = False
       orderitems = self.orderitem_set.all()
       for item in orderitems:
@@ -47,16 +57,19 @@ class Order(models.Model):
 
    @property
    def get_cart_total(self):
+      """Returns total price for all products in order."""
       orderitems = self.orderitem_set.all()
       total = sum([item.get_total for item in orderitems])
       return total
    
    @property
    def get_cart_items(self):
+      """Returns total quantity for all products in order."""
       orderitems = self.orderitem_set.all()
       total = sum([item.quantity  for item in orderitems])
       return total
 
+"""OrderItem model"""
 class OrderItem(models.Model):
    product     = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
    order       = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True)
@@ -65,9 +78,11 @@ class OrderItem(models.Model):
 
    @property
    def get_total(self):
+      """Returns total price for one product type based on product price and quantity."""
       total = self.product.price * self.quantity
       return total
 
+"""ShippingAddress model"""
 class ShippingAddress(models.Model):
    customer    = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True)
    order       = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True)

@@ -42,7 +42,7 @@
       <br />
       <div class="box-element hidden" id="payment-info">
          <small>Paypal Options</small>
-         <button id="make-payment">Make payment</button>
+         <div id="paypal-button-container"></div>
       </div>
    </div>
 
@@ -70,41 +70,84 @@
    </div>
 </div>
 
+<!-- PayPal API -->
+<script src="https://www.paypal.com/sdk/js?client-id=Aea2ZfAeCxujP8TWN3gO7f9RbU-ffRb2Mk9xXF4pvzquFday7yWV3N3WQkGQSGoptyT8WjQtoXxzE2Ck&currency=RUB"></script>
+
+<!-- PayPal Main script -->
 <script>
    "use strict";
 
-   let shipping = "{{ order.shipping }}";
-   let total = "{{ order.get_cart_total }}";
+   let total = "{{ order.get_cart_total }}"; // Getting total price forn backend.
 
-   if (shipping == "False") document.getElementById("shipping-info").innerHTML = "";
+   // Paypal object.
+   paypal
+      // Paypal buttons object.
+      .Buttons({
+         // Buttons styling.
+         style: {
+            color: "blue",
+            shape: "rect",
+         },
 
-   if (user != "AnonymousUser") document.getElementById("user-info").innerHTML = "";
+         // Creating new order with total price from backend.
+         createOrder: function (data, actions) {
+            return actions.order.create({
+               purchase_units: [
+                  {
+                     amount: {
+                        value: parseFloat(total).toFixed(2), // Using total price from backend.
+                     },
+                  },
+               ],
+            });
+         },
 
+         // After user submittion and verification use submitFormData().
+         onApprove: function (data, actions) {
+            return actions.order.capture().then(function (details) {
+               submitFormData();
+            });
+         },
+      })
+      .render("#paypal-button-container"); // Rendering paypal form in special div tag.
+</script>
+
+<!-- Script: Getting user, shipping data and order creation submittion -->
+<script>
+   "use strict";
+
+   let shipping = "{{ order.shipping }}"; // Getting a shipping state from backend.
+
+   if (shipping == "False") document.getElementById("shipping-info").innerHTML = ""; // If shipping is Flase: Hide shipping form.
+
+   if (user != "AnonymousUser") document.getElementById("user-info").innerHTML = ""; // If user is authanticated: Hide user sign up form.
+
+   // If shipping is False and user is logged in: Hide both forms.
    if (shipping == "False" && user != "AnonymousUser") {
       document.getElementById("form-wrapper").classList.add("hidden");
       document.getElementById("payment-info").classList.remove("hidden");
    }
 
-   let form = document.getElementById("form");
-   csrftoken = form.getElementsByTagName("input")[0].value;
+   let form = document.getElementById("form"); // Getting form for creating new csrf token.
+   csrftoken = form.getElementsByTagName("input")[0].value; // Getting input with zero index with csrf token.
 
+   // "Continue" button event handler. Hide and show Paypal form.
    form.addEventListener("submit", function (e) {
       e.preventDefault();
       document.getElementById("form-button").classList.add("hidden");
       document.getElementById("payment-info").classList.remove("hidden");
    });
 
-   document.getElementById("make-payment").addEventListener("click", function (e) {
-      submitFormData();
-   });
-
+   // Order and payment submittion.
    function submitFormData() {
+      // Declare a dictionary with a guest user data.
       let userFormData = {
          name: null,
          email: null,
          total: total,
       };
 
+      // Declare a dictionary with a shopping data.
       let shippingInfo = {
          address: null,
          city: null,
@@ -112,6 +155,7 @@
          zipcode: null,
       };
 
+      // If shipping is not False: Fill shipping dictionary with data from shipping form.
       if (shipping != "False") {
          shippingInfo.address = form.address.value;
          shippingInfo.city = form.city.value;
@@ -119,27 +163,32 @@
          shippingInfo.zipcode = form.zipcode.value;
       }
 
+      // If a guest user: Fill user dictionary with data from user form.
       if (user == "AnonymousUser") {
          userFormData.name = form.name.value;
          userFormData.email = form.email.value;
       }
 
-      let url = "/process_order/";
+      let url = "/process_order/"; // The beginig of request.
 
+      // Fetc(<begiging url>, request parameters).
       fetch(url, {
+         // Method type.
          method: "POST",
+         // Format and security token params.
          headers: {
             "Content-Type": "application/json",
             "X-CSRFToken": csrftoken,
          },
+         // Json body.
          body: JSON.stringify({
             form: userFormData,
             shipping: shippingInfo,
          }),
       })
-         .then((response) => {
-            return response.json();
-         })
+         // Promise state handler: Returns JSON response.
+         .then((response) => response.json())
+         // Promise state handler: Clear cart, create new cart cookie, redirect to store page.
          .then((data) => {
             cart = {};
             document.cookie = "cart=" + JSON.stringify(cart) + ";domain=;path=/";
