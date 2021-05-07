@@ -7,9 +7,23 @@ for (let i = 0; i < updateBtns.length; i++) {
       let productId = this.dataset.product;
       let action = this.dataset.action;
 
-      if (user == "AnonymousUser") console.log("User is not authenticated");
+      if (user === "AnonymousUser") addCookieItem(productId, action);
       else updateUserOrder(productId, action);
    });
+}
+
+function addCookieItem(productId, action) {
+   if (action == "add") {
+      if (cart[productId] == undefined) cart[productId] = { quantity: 1 };
+      else cart[productId]["quantity"]++;
+   }
+   if (action == "remove") {
+      cart[productId]["quantity"]--;
+
+      if (cart[productId]["quantity"] <= 0) delete cart[productId];
+   }
+   document.cookie = "cart=" + JSON.stringify(cart) + ";domain=;path=/";
+   location.reload();
 }
 
 function updateUserOrder(productId, action) {
