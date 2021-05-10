@@ -1,0 +1,34 @@
+{% extends 'store/main.html' %} {% load static %} {% block content %}
+
+<div class="container" id="product-section">
+   <a class="btn btn-outline-dark" href="{% url 'store' %}">&#x2190; Continue Shopping</a>
+   <br />
+   <br />
+   <div class="row">
+      <div class="col-md-6"><img class="thumbnail" src="{{ product.imageURL }}" /></div>
+      <div class="col-md-6">
+         <div class="row">
+            <div class="col-md-12">
+               <h1><strong>{{ product.name }}</strong></h1>
+            </div>
+         </div>
+         <div class="row">
+            <div class="col-md-12">
+               <p>{{ product.description }}</p>
+            </div>
+         </div>
+         <div class="row">
+            <div class="col-md-12">
+               <button data-product="{{ product.id }}" data-action="add" class="btn btn-outline-secondary add-btn update-cart add-btn">
+                  Add to Cart
+               </button>
+               <h2 style="display: inline-block; float: right">
+                  <strong>${{ product.price|floatformat:2 }}</strong>
+               </h2>
+            </div>
+         </div>
+      </div>
+   </div>
+
+   {% endblock content %}
+</div>

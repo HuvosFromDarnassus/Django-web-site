@@ -1,3 +1,4 @@
+from django.views.generic import DetailView
 from django.http import JsonResponse
 from django.shortcuts import render
 import datetime
@@ -134,3 +135,20 @@ def processOrder(request):
             zipcode=data['shipping']['zipcode'],
          )
    return JsonResponse('Payment subbmitted...', safe=False)
+
+def product_detail_view(request, id):
+   """
+   Gets product data from database by id,
+   render data of one product in product detail page.
+   """
+   # Getting product object from database by id.
+   obj = Product.objects.get(id=id)
+   # Getting data from request for cart statement rendering.
+   data = cartData(request)
+   cartItems = data['cartItems']
+   # Creating context.
+   context = {
+      'product': obj,
+      'cartItems': cartItems,
+   }
+   return render(request, 'store/product_detail.html', context)
